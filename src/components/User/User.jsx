@@ -1,20 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
 import axios from "axios";
-import {Button, TablePagination, TableSortLabel} from "@material-ui/core";
+import {Tooltip} from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
 import {useHistory} from 'react-router-dom'
 import IconButton from "@material-ui/core/IconButton";
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import ConfirmationDialog from "../util/ConfirmationDialog";
+import {Link} from "react-router-dom";
+import DataTable from "../util/DataTable";
 
 const useStyles = makeStyles((theme) => ({
     seeMore: {
@@ -45,125 +40,89 @@ const useStyles = makeStyles((theme) => ({
 export default function User() {
     const classes = useStyles();
     const [userList, setUserList] = useState([])
-    const [size, setSize] = useState(10)
     const [page, setPage] = useState(0)
     const [totalElements, setTotalElements] = useState(0)
     const history = useHistory();
     const [openDialog, setOpenDialog] = useState(false);
-    const [userId, setUserId] = useState();
-    const [orderBy, setOrderBy] = useState();
-    const [asc, setAsc] = useState();
+    const [item, setItem] = useState();
+
+    const rowSettings = {
+        username: {
+            label: 'Username',
+            sortable: true
+        },
+        firstname: {
+            label: 'Firstname',
+            sortable: true
+        },
+        lastname: {
+            label: 'Lastname',
+            sortable: true
+        },
+        actions: {
+            label: 'Acciones',
+            cellRendering: item => (
+                <React.Fragment>
+                        <Link
+                            to={`user/${item.id}/edit`}
+                            style={{ textDecoration: 'none' }}>
+                            <Tooltip title="Edit" placement="top-start">
+                                <IconButton aria-label="Edit">
+                                    <EditIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Link>
+                        <Link
+                            style={{ textDecoration: 'none' }}
+                            onClick={() => {
+                                setOpenDialog(true);
+                                setItem(item);
+                            }}>
+                            <Tooltip
+                                title="Delete"
+                                placement="top-start">
+                                <IconButton aria-label="Delete" color="default">
+                                    <DeleteIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Link>
+                </React.Fragment>
+            )
+        }
+    };
+
 
     useEffect(() => {
-        axios.get('http://localhost:8080/api/v1/user', {params: {page, size, orderBy, asc}}
-        ).then(rsp => {
-            setUserList(rsp.data.content)
-            setTotalElements(rsp.data.totalElements)
-        }).catch(err => console.error(err))
-    }, [page, size, orderBy, asc])
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setSize(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+        handleReloadTable(0, 10, undefined, undefined);
+    }, [])
 
     const removeItem = () => {
-        axios.delete(`http://localhost:8080/api/v1/user/${userId}`
+        axios.delete(`http://localhost:8080/api/v1/user/${item.id}`
         ).then(rsp => {
             setPage(0);
         }).catch(err => console.error(err))
             .finally(() => setOpenDialog(false))
     }
 
-    const createSortHandler = (property) => (event) => {
-        if (property === orderBy)
-            setAsc(!asc)
-        else
-            setAsc(true)
-        setOrderBy(property);
-    };
-
-    const getSorteableHead = (property, label) => {
-        return (
-            <TableCell
-            sortDirection={orderBy === property ? (asc ? 'asc' : 'desc') : false}>
-            <TableSortLabel
-                active={orderBy === property}
-                direction={orderBy === property&& asc ? 'asc' : 'desc'}
-                onClick={createSortHandler(property)}>
-                {label}
-                {orderBy === property ? (
-                    <span className={classes.visuallyHidden}>
-                  {asc ? 'sorted ascending' : 'sorted descending'}
-                </span>
-                ) : null}
-            </TableSortLabel>
-        </TableCell>)
+    const handleReloadTable = (page, size, orderBy, asc) => {
+        axios.get('http://localhost:8080/api/v1/user', {params: {page, size, orderBy, asc}}
+        ).then(rsp => {
+            setUserList(rsp.data.content)
+            setTotalElements(rsp.data.totalElements)
+        }).catch(err => console.error(err))
     }
 
     return (
         <Paper className={classes.paper}>
-            <Grid container spacing={3}>
-                <Grid item xs={9}>
-                    <Typography variant="h6" gutterBottom>
-                        User List
-                    </Typography>
-                </Grid>
-                <Grid item xs={3} className={classes.alignNewButton}>
-                    <Button variant="contained" color="primary" onClick={() => history.push('/user/new')}>
-                        New
-                    </Button>
-                </Grid>
-            </Grid>
-            <Table size="small">
-                <TableHead>
-                    <TableRow>
-                        {getSorteableHead('username','Username')}
-                        {getSorteableHead('firstname','Firstname')}
-                        {getSorteableHead('lastname','Lastname')}
-                        <TableCell/>
-                        <TableCell/>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {userList.map((row) => (
-                        <TableRow key={row.id}>
-                            <TableCell>{row.username}</TableCell>
-                            <TableCell>{row.firstname}</TableCell>
-                            <TableCell>{row.lastname}</TableCell>
-                            <TableCell>
-                                <IconButton
-                                    color="primary"
-                                    onClick={() => history.push(`/user/${row.id}/edit`)}>
-                                    <EditIcon/>
-                                </IconButton>
-                            </TableCell>
-                            <TableCell>
-                                <IconButton
-                                    color="secondary"
-                                    onClick={() => {
-                                        setOpenDialog(true);
-                                        setUserId(row.id);
-                                    }}>
-                                    <DeleteIcon/>
-                                </IconButton>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={totalElements}
-                rowsPerPage={size}
+            <DataTable
+                dataTableTitle={'User List'}
+                rowSettings={rowSettings}
+                onReloadTable={handleReloadTable}
+                dataList={userList}
+                totalElements={totalElements}
+                handleNewButton={() => history.push('/user/new')}
                 page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
+                setPage={setPage}
             />
             <ConfirmationDialog
                 message={'Do you want to delete this item?'}
