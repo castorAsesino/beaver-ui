@@ -7,7 +7,7 @@ import {Button, IconButton, InputAdornment} from "@material-ui/core";
 import {Visibility, VisibilityOff} from "@material-ui/icons";
 import Paper from "@material-ui/core/Paper";
 import {makeStyles} from "@material-ui/core/styles";
-import axios from "axios";
+import {addUser, getUserById, updateUser} from "../../services/user.service";
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -36,8 +36,7 @@ export default function AddressForm() {
 
     useEffect(() => {
         if (userId)
-            axios.get(`http://localhost:8080/api/v1/user/${userId}`)
-                .then(rsp => setUser(rsp.data))
+            getUserById(userId).then(rsp => setUser(rsp.data))
                 .catch(err => console.error(err));
     }, [userId])
 
@@ -49,12 +48,12 @@ export default function AddressForm() {
     }
 
     const handleSave = () => {
-        axios({
-            method: userId ? 'put' : 'post',
-            url: `http://localhost:8080/api/v1/user${userId ? '/' + userId : ''}`,
-            data: user
-        }).then(rsp => history.push('/user'))
-            .catch(err => console.error(err));
+        if (userId)
+            updateUser(user, userId).then(rsp => history.push('/user'))
+                .catch(err => console.error(err));
+        else
+            addUser(user).then().then(rsp => history.push('/user'))
+                .catch(err => console.error(err));
     }
 
     return (
@@ -93,6 +92,7 @@ export default function AddressForm() {
                         label="Username"
                         fullWidth
                         value={user.username}
+                        disabled={typeof userId !== 'undefined'}
                         onChange={(event => handleChangeField('username', event))}
                     />
                 </Grid>
@@ -104,6 +104,7 @@ export default function AddressForm() {
                         type={showPassword ? 'text' : 'password'}
                         fullWidth
                         value={user.password}
+                        disabled={typeof userId !== 'undefined'}
                         onChange={(event => handleChangeField('password', event))}
                         InputProps={{
                             endAdornment: <InputAdornment position="end">

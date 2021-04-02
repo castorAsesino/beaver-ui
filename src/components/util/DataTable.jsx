@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useState} from "react";
+import React, {Fragment} from "react";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import {Button, TablePagination, TableSortLabel} from "@material-ui/core";
@@ -37,24 +37,19 @@ const useStyles = makeStyles((theme) => ({
 
 export default function DataTable(props) {
     const classes = useStyles();
-    const {dataTableTitle, page, setPage, rowSettings, dataList, totalElements, onReloadTable, handleNewButton} = props;
-    const [orderBy, setOrderBy] = useState();
-    const [asc, setAsc] = useState();
-    const [size, setSize] = useState(10)
-    //const [page, setPage] = useState(0)
-
-    useEffect(() => {
-        onReloadTable(page, size, orderBy, asc)
-    }, [page, size, orderBy, asc])
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setSize(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+    const {
+        dataTableTitle,
+        page,
+        size,
+        asc, setAsc,
+        orderBy, setOrderBy,
+        rowSettings,
+        dataList,
+        totalElements,
+        handleChangePage,
+        handleChangeRowsPerPage,
+        handleNewButton
+    } = props;
 
     const createSortHandler = (property) => {
         if (property === orderBy)
@@ -73,7 +68,7 @@ export default function DataTable(props) {
                     <TableSortLabel
                         active={orderBy === key}
                         direction={orderBy === key && asc ? 'asc' : 'desc'}
-                        onClick={()=>createSortHandler(key)}>
+                        onClick={() => createSortHandler(key)}>
                         {rowSettings[key].label}
                         {orderBy === key ? (
                             <span className={classes.visuallyHidden}>
@@ -128,8 +123,8 @@ export default function DataTable(props) {
                 count={totalElements}
                 rowsPerPage={size}
                 page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
+                onChangePage={(event, newPage) => handleChangePage(newPage)}
+                onChangeRowsPerPage={(event) => handleChangeRowsPerPage(parseInt(event.target.value, 10))}
             /></Fragment>
     )
 }
