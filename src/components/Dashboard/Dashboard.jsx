@@ -165,7 +165,6 @@ export default function Dashboard() {
                         <MenuItem onClick={() => {
                             handleClose();
                             AuthService.logout();
-                            window.location.reload();
                         }}>Logout</MenuItem>
                     </Menu>
 

@@ -6,9 +6,9 @@ import {useHistory} from 'react-router-dom'
 import IconButton from "@material-ui/core/IconButton";
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import ConfirmationDialog from "../util/ConfirmationDialog";
-import {Link} from "react-router-dom";
-import DataTable from "../util/DataTable";
+import Link from "@material-ui/core/Link";
+import ConfirmationDialog from "../lib/ConfirmationDialog";
+import DataTable from "../lib/DataTable";
 import {deleteUser, getUserList} from "../../services/user.service";
 
 const useStyles = makeStyles((theme) => ({
@@ -67,7 +67,7 @@ export default function User() {
             cellRendering: item => (
                 <React.Fragment>
                     <Link
-                        to={`user/${item.id}/edit`}
+                        onClick={()=>history.push(`user/${item.id}/edit`)}
                         style={{textDecoration: 'none'}}>
                         <Tooltip title="Edit" placement="top-start">
                             <IconButton aria-label="Edit">
@@ -129,11 +129,11 @@ export default function User() {
                 totalElements={totalElements}
                 handleNewButton={() => history.push('/user/new')}
                 page={page}
-                setPage={setPage}
                 orderBy={orderBy}
                 setOrderBy={setOrderBy}
                 asc={asc}
                 setAsc={setAsc}
+                size={size}
                 handleChangePage={handleChangePage}
                 handleChangeRowsPerPage={handleChangeRowsPerPage}
             />
